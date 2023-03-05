@@ -9,18 +9,20 @@ import styles from "./Login.module.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const dispatch = useDispatch();
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [login, result] = useLoginMutation();
+  // const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (result.status === "fulfilled") {
-      dispatch(setToken(result.data.token));
-    }
-  }, [result, dispatch]);
+  // const [login, result] = useLoginMutation();
 
-  function handleLogin() {
-    login({ email, password });
+  // useEffect(() => {
+  //   if (result.status === "fulfilled") {
+  //     dispatch(setToken(result.data.token));
+  //   }
+  // }, [result, dispatch]);
+
+  function handleRegister() {
+    //   login({ email, password });
   }
 
   return (
@@ -42,10 +44,10 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button variant="contained" onClick={handleLogin}>
-          Login
+        <Button variant="contained" onClick={handleRegister}>
+          Register
         </Button>
-        <Link to={"/register"}>Don't have an account? Register Now.</Link>
+        <Link to={"/login"}>Already have an account? Click to Login.</Link>
       </div>
     </div>
   );
