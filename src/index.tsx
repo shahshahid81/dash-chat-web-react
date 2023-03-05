@@ -4,20 +4,11 @@ import { Provider } from "react-redux";
 import { store } from "./app/store";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
-import {
-  createRoutesFromElements,
-  createBrowserRouter,
-  Route,
-  RouterProvider,
-} from "react-router-dom";
-import Root from "./routes/root";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./app/router";
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);
-
-const router = createBrowserRouter(
-  createRoutesFromElements(<Route path="/" element={<Root />}></Route>)
-);
 
 root.render(
   <React.StrictMode>
