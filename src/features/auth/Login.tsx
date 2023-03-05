@@ -1,8 +1,9 @@
-import { Button, Grid, TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLoginMutation } from "./authApi";
 import { setToken } from "./authSlice";
+import styles from "./Login.module.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,34 +23,28 @@ export default function Login() {
   }
 
   return (
-    <Grid container columns={12}>
-      <Grid item xs={12}>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginForm}>
         <h1>Login</h1>
-      </Grid>
-      <Grid item xs={12}>
         <TextField
           required
-          label="email"
+          label="Email"
           variant="standard"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-      </Grid>
-      <Grid item xs={12}>
         <TextField
           required
-          label="password"
+          label="Password"
           type="password"
           variant="standard"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-      </Grid>
-      <Grid item xs={12}>
         <Button variant="contained" onClick={handleLogin}>
           Login
         </Button>
-      </Grid>
-    </Grid>
+      </div>
+    </div>
   );
 }

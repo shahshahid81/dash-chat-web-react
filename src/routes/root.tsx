@@ -1,13 +1,16 @@
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
+import { Outlet, useNavigate } from "react-router-dom";
 import { RootState } from "../app/store";
-import Login from "../features/auth/Login";
 
 export default function Root() {
   const token = useSelector((state: RootState) => state.auth.token);
+  const navigate = useNavigate();
 
-  if (token) {
-    return <h1>Authenticated</h1>;
-  }
+  useEffect(() => {
+    const route = !token ? "login" : "homepage";
+    navigate(route);
+  }, [token, navigate]);
 
-  return <Login></Login>;
+  return <Outlet></Outlet>;
 }

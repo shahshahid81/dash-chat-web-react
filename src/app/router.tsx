@@ -3,8 +3,15 @@ import {
   createRoutesFromElements,
   Route,
 } from "react-router-dom";
+import Login from "../features/auth/Login";
+import Homepage from "../features/homepage/Homepage";
 import Root from "../routes/root";
 
 export const router = createBrowserRouter(
-  createRoutesFromElements(<Route path="/" element={<Root />}></Route>)
+  createRoutesFromElements(
+    <Route path="/" element={<Root />}>
+      <Route path="/login" element={<Login />}></Route>
+      <Route path="/homepage" element={<Homepage />}></Route>
+    </Route>
+  )
 );
