@@ -10,9 +10,9 @@ export default function Root() {
 
   useEffect(() => {
     const route = !token
-      ? location.pathname === "/login"
-        ? "login"
-        : "register"
+      ? location.pathname === "/register"
+        ? "register"
+        : "login"
       : "homepage";
     navigate(route);
   }, [token, navigate, location.pathname]);

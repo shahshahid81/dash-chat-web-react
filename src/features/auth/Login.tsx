@@ -1,5 +1,5 @@
 import { Button, TextField } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
@@ -10,6 +10,10 @@ import styles from "./Login.module.css";
 type LoginFormData = {
   email: string;
   password: string;
+};
+
+type ValidationError = {
+  errors: { field: string; message: string }[];
 };
 
 function getDefaultData(): LoginFormData {
@@ -35,47 +39,60 @@ export default function Login() {
 
   const [login, result] = useLoginMutation();
 
+  const [emailErrorText, setEmailErrorText] = useState("");
+  const [passwordErrorText, setPasswordErrorText] = useState("");
+
   useEffect(() => {
-    if (result.status === "fulfilled") {
+    if (result.status === "fulfilled" && result.data.token) {
       reset(getDefaultData());
       dispatch(setToken(result.data.token));
+    } else if (result.status === "rejected") {
+      if (
+        result.isError &&
+        "data" in result.error &&
+        (result.error.data as Partial<ValidationError>).errors?.length
+      ) {
+        const { errors } = result.error.data as ValidationError;
+        for (const error of errors) {
+          if (error.field === "email") {
+            console.log(error.message);
+            setEmailErrorText(error.message);
+            break;
+          } else if (error.field === "password") {
+            setPasswordErrorText(error.message);
+          }
+        }
+      }
     }
-  }, [result, dispatch]);
+  }, [result, dispatch, reset]);
 
   const emailError = Object.keys(errors?.email ?? {}).length > 0;
   const passwordError = Object.keys(errors?.password ?? {}).length > 0;
 
-  function getEmailError() {
-    if (!emailError) {
-      return "";
-    }
-
+  if (emailError) {
     if (errors.email?.type === "required") {
-      return "Email is required";
+      emailErrorText !== "Email is required" &&
+        setEmailErrorText("Email is required");
+    } else if (errors.email?.type === "minLength") {
+      emailErrorText !== "Email should have minimum 3 characters" &&
+        setEmailErrorText("Email should have minimum 3 characters");
     }
+  } else emailErrorText !== "" && setEmailErrorText("");
 
-    if (errors.email?.type === "minLength") {
-      return "Email should have minimum 3 characters";
-    }
-  }
-
-  function getPasswordError() {
-    if (!passwordError) {
-      return "";
-    }
-
+  if (passwordError) {
     if (errors.password?.type === "required") {
-      return "Password is required";
+      passwordErrorText !== "Password is required" &&
+        setPasswordErrorText("Password is required");
+    } else if (errors.password?.type === "minLength") {
+      passwordErrorText !== "Password should have minimum 8 characters" &&
+        setPasswordErrorText("Password should have minimum 8 characters");
+    } else if (errors.password?.type === "maxLength") {
+      passwordErrorText !== "Password can have maximum 20 characters" &&
+        setPasswordErrorText("Password can have maximum 20 characters");
     }
+  } else passwordErrorText !== "" && setPasswordErrorText("");
 
-    if (errors.password?.type === "minLength") {
-      return "Password should have minimum 8 characters";
-    }
-
-    if (errors.password?.type === "maxLength") {
-      return "Password can have maximum 20 characters";
-    }
-  }
+  console.log(emailErrorText);
 
   return (
     <div className={styles.loginContainer}>
@@ -94,7 +111,7 @@ export default function Login() {
                 value={value}
                 onChange={onChange}
                 error={emailError}
-                helperText={getEmailError()}
+                helperText={emailErrorText}
               />
             )}
           />
@@ -111,7 +128,7 @@ export default function Login() {
                 value={value}
                 onChange={onChange}
                 error={passwordError}
-                helperText={getPasswordError()}
+                helperText={passwordErrorText}
               />
             )}
           />

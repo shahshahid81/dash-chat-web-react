@@ -14,7 +14,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState(DateTime.now());
+  const [dateOfBirth, setDateOfBirth] = useState<DateTime | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -32,7 +32,7 @@ export default function Register() {
       email,
       password,
       confirmPassword,
-      dateOfBirth: dateOfBirth.toFormat("yyyy-MM-dd"),
+      dateOfBirth: dateOfBirth?.toFormat("yyyy-MM-dd") ?? "",
       firstName,
       lastName,
     });
