@@ -1,4 +1,5 @@
 import { Button, TextField } from "@mui/material";
+import { QueryStatus } from "@reduxjs/toolkit/dist/query";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -29,11 +30,17 @@ export default function Login() {
     reset,
     handleSubmit,
     formState: { errors },
+    clearErrors,
   } = useForm({
     defaultValues: getDefaultData(),
   });
 
-  const onSubmit: SubmitHandler<LoginFormData> = (data) => login(data);
+  const onSubmit: SubmitHandler<LoginFormData> = (data) => {
+    clearErrors();
+    setEmailErrorText("");
+    setPasswordErrorText("");
+    login(data);
+  };
 
   const dispatch = useDispatch();
 
@@ -52,10 +59,12 @@ export default function Login() {
         "data" in result.error &&
         (result.error.data as Partial<ValidationError>).errors?.length
       ) {
+        clearErrors();
+        setEmailErrorText("");
+        setPasswordErrorText("");
         const { errors } = result.error.data as ValidationError;
         for (const error of errors) {
           if (error.field === "email") {
-            console.log(error.message);
             setEmailErrorText(error.message);
             break;
           } else if (error.field === "password") {
@@ -77,7 +86,13 @@ export default function Login() {
       emailErrorText !== "Email should have minimum 3 characters" &&
         setEmailErrorText("Email should have minimum 3 characters");
     }
-  } else emailErrorText !== "" && setEmailErrorText("");
+  } else if (
+    ["Email is required", "Email should have minimum 3 characters"].includes(
+      emailErrorText
+    )
+  ) {
+    setEmailErrorText("");
+  }
 
   if (passwordError) {
     if (errors.password?.type === "required") {
@@ -90,9 +105,15 @@ export default function Login() {
       passwordErrorText !== "Password can have maximum 20 characters" &&
         setPasswordErrorText("Password can have maximum 20 characters");
     }
-  } else passwordErrorText !== "" && setPasswordErrorText("");
-
-  console.log(emailErrorText);
+  } else if (
+    [
+      "Password is required",
+      "Password should have minimum 8 characters",
+      "Password can have maximum 20 characters",
+    ].includes(passwordErrorText)
+  ) {
+    setPasswordErrorText("");
+  }
 
   return (
     <div className={styles.loginContainer}>
@@ -110,7 +131,7 @@ export default function Login() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={emailError}
+                error={emailErrorText !== ""}
                 helperText={emailErrorText}
               />
             )}
@@ -127,12 +148,16 @@ export default function Login() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={passwordError}
+                error={passwordErrorText !== ""}
                 helperText={passwordErrorText}
               />
             )}
           />
-          <Button variant="contained" type="submit">
+          <Button
+            disabled={result.status === QueryStatus.pending}
+            variant="contained"
+            type="submit"
+          >
             Login
           </Button>
         </form>
