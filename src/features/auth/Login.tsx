@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { ValidationError } from "../../contracts/types/core";
 import { useLoginMutation } from "./authApi";
 import { setToken } from "./authSlice";
 import styles from "./Login.module.css";
@@ -11,10 +12,6 @@ import styles from "./Login.module.css";
 type LoginFormData = {
   email: string;
   password: string;
-};
-
-type ValidationError = {
-  errors: { field: string; message: string }[];
 };
 
 function getDefaultData(): LoginFormData {
@@ -32,6 +29,9 @@ export default function Login() {
     setApiErrorText("");
   }
 
+  const dispatch = useDispatch();
+  const [login, result] = useLoginMutation();
+
   const {
     control,
     reset,
@@ -46,10 +46,6 @@ export default function Login() {
     resetErrors();
     login(data);
   };
-
-  const dispatch = useDispatch();
-
-  const [login, result] = useLoginMutation();
 
   const [emailErrorText, setEmailErrorText] = useState("");
   const [passwordErrorText, setPasswordErrorText] = useState("");
@@ -83,27 +79,20 @@ export default function Login() {
     }
   }, [result, dispatch, reset, clearErrors]);
 
-  const emailError = Object.keys(errors?.email ?? {}).length > 0;
-  const passwordError = Object.keys(errors?.password ?? {}).length > 0;
   let emailValidationErrorText = "";
-  let passwordValidationErrorText = "";
-
-  if (emailError) {
-    if (errors.email?.type === "required") {
-      emailValidationErrorText = "Email is required";
-    } else if (errors.email?.type === "minLength") {
-      emailValidationErrorText = "Email should have minimum 3 characters";
-    }
+  if (errors?.email?.type === "required") {
+    emailValidationErrorText = "Email is required";
+  } else if (errors?.email?.type === "minLength") {
+    emailValidationErrorText = "Email should have minimum 3 characters";
   }
 
-  if (passwordError) {
-    if (errors.password?.type === "required") {
-      passwordValidationErrorText = "Password is required";
-    } else if (errors.password?.type === "minLength") {
-      passwordValidationErrorText = "Password should have minimum 8 characters";
-    } else if (errors.password?.type === "maxLength") {
-      passwordValidationErrorText = "Password can have maximum 20 characters";
-    }
+  let passwordValidationErrorText = "";
+  if (errors?.password?.type === "required") {
+    passwordValidationErrorText = "Password is required";
+  } else if (errors?.password?.type === "minLength") {
+    passwordValidationErrorText = "Password should have minimum 8 characters";
+  } else if (errors?.password?.type === "maxLength") {
+    passwordValidationErrorText = "Password can have maximum 20 characters";
   }
 
   return (
