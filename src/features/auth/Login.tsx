@@ -1,4 +1,4 @@
-import { Button, TextField } from "@mui/material";
+import { Alert, Button, TextField } from "@mui/material";
 import { QueryStatus } from "@reduxjs/toolkit/dist/query";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
@@ -39,6 +39,7 @@ export default function Login() {
     clearErrors();
     setEmailErrorText("");
     setPasswordErrorText("");
+    setApiErrorText("");
     login(data);
   };
 
@@ -48,32 +49,38 @@ export default function Login() {
 
   const [emailErrorText, setEmailErrorText] = useState("");
   const [passwordErrorText, setPasswordErrorText] = useState("");
+  const [apiErrorText, setApiErrorText] = useState("");
 
   useEffect(() => {
-    if (result.status === "fulfilled" && result.data.token) {
+    if ([QueryStatus.fulfilled, QueryStatus.rejected].includes(result.status)) {
+      clearErrors();
+      setEmailErrorText("");
+      setPasswordErrorText("");
+      setApiErrorText("");
+    }
+
+    if (result.status === QueryStatus.fulfilled && result.data.token) {
       reset(getDefaultData());
       dispatch(setToken(result.data.token));
-    } else if (result.status === "rejected") {
+    } else if (result.status === QueryStatus.rejected) {
       if (
         result.isError &&
         "data" in result.error &&
         (result.error.data as Partial<ValidationError>).errors?.length
       ) {
-        clearErrors();
-        setEmailErrorText("");
-        setPasswordErrorText("");
         const { errors } = result.error.data as ValidationError;
         for (const error of errors) {
           if (error.field === "email") {
             setEmailErrorText(error.message);
-            break;
           } else if (error.field === "password") {
             setPasswordErrorText(error.message);
+          } else {
+            setApiErrorText(error.message);
           }
         }
       }
     }
-  }, [result, dispatch, reset]);
+  }, [result, dispatch, reset, clearErrors]);
 
   const emailError = Object.keys(errors?.email ?? {}).length > 0;
   const passwordError = Object.keys(errors?.password ?? {}).length > 0;
@@ -161,6 +168,11 @@ export default function Login() {
             Login
           </Button>
         </form>
+        {apiErrorText && (
+          <Alert variant="outlined" severity="error">
+            {apiErrorText}
+          </Alert>
+        )}
         <Link to={"/register"}>Don't have an account? Register Now.</Link>
       </div>
     </div>
