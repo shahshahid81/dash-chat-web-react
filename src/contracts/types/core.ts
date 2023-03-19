@@ -1,3 +1,3 @@
-export type ValidationError = {
-  errors: { field: string; message: string }[];
+export type ValidationError<T> = {
+  errors: { field?: keyof T; message: string }[];
 };

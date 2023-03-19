@@ -1,4 +1,4 @@
-import { Button, TextField } from "@mui/material";
+import { Alert, Button, TextField } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { setToken } from "./authSlice";
 import { useDispatch } from "react-redux";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { QueryStatus } from "@reduxjs/toolkit/dist/query";
+import { ValidationError } from "../../contracts/types/core";
 
 type RegisterFormData = {
   email: string;
@@ -33,6 +34,24 @@ function getDefaultData(): RegisterFormData {
 }
 
 export default function Register() {
+  function resetErrors() {
+    clearErrors();
+    setFirstNameErrorText("");
+    setLastNameErrorText("");
+    setDateOfBirthErrorText("");
+    setEmailErrorText("");
+    setPasswordErrorText("");
+    setConfirmPasswordErrorText("");
+    setApiErrorText("");
+  }
+
+  const [firstNameErrorText, setFirstNameErrorText] = useState("");
+  const [lastNameErrorText, setLastNameErrorText] = useState("");
+  const [dateOfBirthErrorText, setDateOfBirthErrorText] = useState("");
+  const [emailErrorText, setEmailErrorText] = useState("");
+  const [passwordErrorText, setPasswordErrorText] = useState("");
+  const [confirmPasswordErrorText, setConfirmPasswordErrorText] = useState("");
+  const [apiErrorText, setApiErrorText] = useState("");
   const dispatch = useDispatch();
   const [register, result] = useRegisterMutation();
 
@@ -47,6 +66,7 @@ export default function Register() {
   });
 
   const onSubmit: SubmitHandler<RegisterFormData> = (data) => {
+    resetErrors();
     register({
       ...data,
       dateOfBirth: data?.dateOfBirth?.toFormat("yyyy-MM-dd") ?? "",
@@ -54,10 +74,42 @@ export default function Register() {
   };
 
   useEffect(() => {
-    if (result.status === "fulfilled") {
-      dispatch(setToken(result.data.token));
+    if ([QueryStatus.fulfilled, QueryStatus.rejected].includes(result.status)) {
+      resetErrors();
     }
-  }, [result, dispatch]);
+
+    if (result.status === QueryStatus.fulfilled && result.data.token) {
+      reset(getDefaultData());
+      dispatch(setToken(result.data.token));
+    } else if (result.status === QueryStatus.rejected) {
+      if (
+        result.isError &&
+        "data" in result.error &&
+        (result.error.data as Partial<ValidationError<RegisterFormData>>).errors
+          ?.length
+      ) {
+        const { errors } = result.error
+          .data as ValidationError<RegisterFormData>;
+        for (const error of errors) {
+          if (error.field === "password") {
+            setPasswordErrorText(error.message);
+          } else if (error.field === "firstName") {
+            setFirstNameErrorText(error.message);
+          } else if (error.field === "lastName") {
+            setLastNameErrorText(error.message);
+          } else if (error.field === "email") {
+            setEmailErrorText(error.message);
+          } else if (error.field === "dateOfBirth") {
+            setDateOfBirthErrorText(error.message);
+          } else if (error.field === "confirmPassword") {
+            setConfirmPasswordErrorText(error.message);
+          } else {
+            setApiErrorText(error.message);
+          }
+        }
+      }
+    }
+  }, [result, dispatch, reset, clearErrors]);
 
   let firstNameValidationErrorText = "";
   if (errors?.firstName?.type === "required") {
@@ -129,8 +181,11 @@ export default function Register() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={firstNameValidationErrorText !== ""}
-                helperText={firstNameValidationErrorText}
+                error={
+                  firstNameValidationErrorText !== "" ||
+                  firstNameErrorText !== ""
+                }
+                helperText={firstNameValidationErrorText || firstNameErrorText}
               />
             )}
           />
@@ -145,8 +200,10 @@ export default function Register() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={lastNameValidationErrorText !== ""}
-                helperText={lastNameValidationErrorText}
+                error={
+                  lastNameValidationErrorText !== "" || lastNameErrorText !== ""
+                }
+                helperText={lastNameValidationErrorText || lastNameErrorText}
               />
             )}
           />
@@ -168,8 +225,11 @@ export default function Register() {
                       value,
                       required: true,
                       variant: "standard",
-                      error: dateOfBirthValidationErrorText !== "",
-                      helperText: dateOfBirthValidationErrorText,
+                      error:
+                        dateOfBirthValidationErrorText !== "" ||
+                        dateOfBirthErrorText !== "",
+                      helperText:
+                        dateOfBirthValidationErrorText || dateOfBirthErrorText,
                     },
                   }}
                 />
@@ -187,8 +247,8 @@ export default function Register() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={emailValidationErrorText !== ""}
-                helperText={emailValidationErrorText}
+                error={emailValidationErrorText !== "" || emailErrorText !== ""}
+                helperText={emailValidationErrorText || emailErrorText}
               />
             )}
           />
@@ -204,8 +264,10 @@ export default function Register() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={passwordValidationErrorText !== ""}
-                helperText={passwordValidationErrorText}
+                error={
+                  passwordValidationErrorText !== "" || passwordErrorText !== ""
+                }
+                helperText={passwordValidationErrorText || passwordErrorText}
               />
             )}
           />
@@ -227,8 +289,13 @@ export default function Register() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={confirmPasswordValidationErrorText !== ""}
-                helperText={confirmPasswordValidationErrorText}
+                error={
+                  confirmPasswordValidationErrorText !== "" ||
+                  confirmPasswordErrorText !== ""
+                }
+                helperText={
+                  confirmPasswordValidationErrorText || confirmPasswordErrorText
+                }
               />
             )}
           />
@@ -240,6 +307,11 @@ export default function Register() {
             Register
           </Button>
         </form>
+        {apiErrorText && (
+          <Alert variant="outlined" severity="error">
+            {apiErrorText}
+          </Alert>
+        )}
         <Link to={"/login"}>Already have an account? Click to Login.</Link>
       </div>
     </div>

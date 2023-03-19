@@ -29,6 +29,9 @@ export default function Login() {
     setApiErrorText("");
   }
 
+  const [emailErrorText, setEmailErrorText] = useState("");
+  const [passwordErrorText, setPasswordErrorText] = useState("");
+  const [apiErrorText, setApiErrorText] = useState("");
   const dispatch = useDispatch();
   const [login, result] = useLoginMutation();
 
@@ -47,10 +50,6 @@ export default function Login() {
     login(data);
   };
 
-  const [emailErrorText, setEmailErrorText] = useState("");
-  const [passwordErrorText, setPasswordErrorText] = useState("");
-  const [apiErrorText, setApiErrorText] = useState("");
-
   useEffect(() => {
     if ([QueryStatus.fulfilled, QueryStatus.rejected].includes(result.status)) {
       resetErrors();
@@ -63,9 +62,10 @@ export default function Login() {
       if (
         result.isError &&
         "data" in result.error &&
-        (result.error.data as Partial<ValidationError>).errors?.length
+        (result.error.data as Partial<ValidationError<LoginFormData>>).errors
+          ?.length
       ) {
-        const { errors } = result.error.data as ValidationError;
+        const { errors } = result.error.data as ValidationError<LoginFormData>;
         for (const error of errors) {
           if (error.field === "email") {
             setEmailErrorText(error.message);
