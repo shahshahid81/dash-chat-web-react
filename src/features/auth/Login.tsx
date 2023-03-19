@@ -25,6 +25,13 @@ function getDefaultData(): LoginFormData {
 }
 
 export default function Login() {
+  function resetErrors() {
+    clearErrors();
+    setEmailErrorText("");
+    setPasswordErrorText("");
+    setApiErrorText("");
+  }
+
   const {
     control,
     reset,
@@ -36,10 +43,7 @@ export default function Login() {
   });
 
   const onSubmit: SubmitHandler<LoginFormData> = (data) => {
-    clearErrors();
-    setEmailErrorText("");
-    setPasswordErrorText("");
-    setApiErrorText("");
+    resetErrors();
     login(data);
   };
 
@@ -53,10 +57,7 @@ export default function Login() {
 
   useEffect(() => {
     if ([QueryStatus.fulfilled, QueryStatus.rejected].includes(result.status)) {
-      clearErrors();
-      setEmailErrorText("");
-      setPasswordErrorText("");
-      setApiErrorText("");
+      resetErrors();
     }
 
     if (result.status === QueryStatus.fulfilled && result.data.token) {
@@ -84,42 +85,25 @@ export default function Login() {
 
   const emailError = Object.keys(errors?.email ?? {}).length > 0;
   const passwordError = Object.keys(errors?.password ?? {}).length > 0;
+  let emailValidationErrorText = "";
+  let passwordValidationErrorText = "";
 
   if (emailError) {
     if (errors.email?.type === "required") {
-      emailErrorText !== "Email is required" &&
-        setEmailErrorText("Email is required");
+      emailValidationErrorText = "Email is required";
     } else if (errors.email?.type === "minLength") {
-      emailErrorText !== "Email should have minimum 3 characters" &&
-        setEmailErrorText("Email should have minimum 3 characters");
+      emailValidationErrorText = "Email should have minimum 3 characters";
     }
-  } else if (
-    ["Email is required", "Email should have minimum 3 characters"].includes(
-      emailErrorText
-    )
-  ) {
-    setEmailErrorText("");
   }
 
   if (passwordError) {
     if (errors.password?.type === "required") {
-      passwordErrorText !== "Password is required" &&
-        setPasswordErrorText("Password is required");
+      passwordValidationErrorText = "Password is required";
     } else if (errors.password?.type === "minLength") {
-      passwordErrorText !== "Password should have minimum 8 characters" &&
-        setPasswordErrorText("Password should have minimum 8 characters");
+      passwordValidationErrorText = "Password should have minimum 8 characters";
     } else if (errors.password?.type === "maxLength") {
-      passwordErrorText !== "Password can have maximum 20 characters" &&
-        setPasswordErrorText("Password can have maximum 20 characters");
+      passwordValidationErrorText = "Password can have maximum 20 characters";
     }
-  } else if (
-    [
-      "Password is required",
-      "Password should have minimum 8 characters",
-      "Password can have maximum 20 characters",
-    ].includes(passwordErrorText)
-  ) {
-    setPasswordErrorText("");
   }
 
   return (
@@ -138,8 +122,8 @@ export default function Login() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={emailErrorText !== ""}
-                helperText={emailErrorText}
+                error={emailValidationErrorText !== "" || emailErrorText !== ""}
+                helperText={emailValidationErrorText || emailErrorText}
               />
             )}
           />
@@ -155,8 +139,10 @@ export default function Login() {
                 variant="standard"
                 value={value}
                 onChange={onChange}
-                error={passwordErrorText !== ""}
-                helperText={passwordErrorText}
+                error={
+                  passwordValidationErrorText !== "" || passwordErrorText !== ""
+                }
+                helperText={passwordValidationErrorText || passwordErrorText}
               />
             )}
           />
