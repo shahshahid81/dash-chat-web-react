@@ -1,7 +1,7 @@
 import { Alert, Button, TextField } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Register.module.css";
 import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon";
@@ -34,7 +34,17 @@ function getDefaultData(): RegisterFormData {
 }
 
 export default function Register() {
-  function resetErrors() {
+  const {
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors },
+    clearErrors,
+  } = useForm({
+    defaultValues: getDefaultData(),
+  });
+
+  const resetErrors = useCallback(() => {
     clearErrors();
     setFirstNameErrorText("");
     setLastNameErrorText("");
@@ -43,7 +53,7 @@ export default function Register() {
     setPasswordErrorText("");
     setConfirmPasswordErrorText("");
     setApiErrorText("");
-  }
+  }, [clearErrors]);
 
   const [firstNameErrorText, setFirstNameErrorText] = useState("");
   const [lastNameErrorText, setLastNameErrorText] = useState("");
@@ -54,16 +64,6 @@ export default function Register() {
   const [apiErrorText, setApiErrorText] = useState("");
   const dispatch = useDispatch();
   const [register, result] = useRegisterMutation();
-
-  const {
-    control,
-    reset,
-    handleSubmit,
-    formState: { errors },
-    clearErrors,
-  } = useForm({
-    defaultValues: getDefaultData(),
-  });
 
   const onSubmit: SubmitHandler<RegisterFormData> = (data) => {
     resetErrors();
@@ -109,7 +109,7 @@ export default function Register() {
         }
       }
     }
-  }, [result, dispatch, reset, clearErrors]);
+  }, [result, dispatch, reset, resetErrors]);
 
   let firstNameValidationErrorText = "";
   if (errors?.firstName?.type === "required") {

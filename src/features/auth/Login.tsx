@@ -22,19 +22,6 @@ function getDefaultData(): LoginFormData {
 }
 
 export default function Login() {
-  function resetErrors() {
-    clearErrors();
-    setEmailErrorText("");
-    setPasswordErrorText("");
-    setApiErrorText("");
-  }
-
-  const [emailErrorText, setEmailErrorText] = useState("");
-  const [passwordErrorText, setPasswordErrorText] = useState("");
-  const [apiErrorText, setApiErrorText] = useState("");
-  const dispatch = useDispatch();
-  const [login, result] = useLoginMutation();
-
   const {
     control,
     reset,
@@ -44,6 +31,19 @@ export default function Login() {
   } = useForm({
     defaultValues: getDefaultData(),
   });
+
+  const resetErrors = useCallback(() => {
+    clearErrors();
+    setEmailErrorText("");
+    setPasswordErrorText("");
+    setApiErrorText("");
+  }, [clearErrors]);
+
+  const [emailErrorText, setEmailErrorText] = useState("");
+  const [passwordErrorText, setPasswordErrorText] = useState("");
+  const [apiErrorText, setApiErrorText] = useState("");
+  const dispatch = useDispatch();
+  const [login, result] = useLoginMutation();
 
   const onSubmit: SubmitHandler<LoginFormData> = (data) => {
     resetErrors();
@@ -77,7 +77,7 @@ export default function Login() {
         }
       }
     }
-  }, [result, dispatch, reset, clearErrors]);
+  }, [result, dispatch, reset, resetErrors]);
 
   let emailValidationErrorText = "";
   if (errors?.email?.type === "required") {
